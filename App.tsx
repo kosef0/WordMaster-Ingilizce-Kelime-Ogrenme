@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import './global.js';
 
 import React from 'react';
@@ -19,3 +20,32 @@ const App = () => {
 };
 
 export default App;
+=======
+import React from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, SafeAreaView } from 'react-native';
+import { COLORS } from './src/styles';
+import AppNavigator from './src/navigation';
+
+// React Navigation için gerekli importlar
+import 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.container}>
+        <StatusBar style="dark" />
+        <AppNavigator />
+      </SafeAreaView>
+    </SafeAreaProvider>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+  },
+});
+>>>>>>> bed42af4b2d242a4be38a0dce664da7ff1abddc0

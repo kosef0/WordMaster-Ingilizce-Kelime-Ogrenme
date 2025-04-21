@@ -1,11 +1,17 @@
 {
   "expo": {
+<<<<<<< HEAD
     "name": "WMMobil",
     "slug": "WMMobil",
+=======
+    "name": "WordMasterApp",
+    "slug": "WordMasterApp",
+>>>>>>> bed42af4b2d242a4be38a0dce664da7ff1abddc0
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+<<<<<<< HEAD
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
@@ -14,6 +20,14 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+=======
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+>>>>>>> bed42af4b2d242a4be38a0dce664da7ff1abddc0
     "ios": {
       "supportsTablet": true
     },
@@ -25,7 +39,13 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+<<<<<<< HEAD
     },
     "newArchEnabled": true
   }
 }
+=======
+    }
+  }
+}
+>>>>>>> bed42af4b2d242a4be38a0dce664da7ff1abddc0
