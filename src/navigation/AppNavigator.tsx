@@ -11,6 +11,8 @@ import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CategoriesScreen from '../screens/CategoriesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 import CategoryDetailScreen from '../screens/CategoryDetailScreen';
 import WordDetailScreen from '../screens/WordDetailScreen';
 import SearchScreen from '../screens/SearchScreen';
@@ -205,6 +207,8 @@ const ProfileStack = createStackNavigator();
 const ProfileStackNavigator = () => (
   <ProfileStack.Navigator screenOptions={stackScreenOptions}>
     <ProfileStack.Screen name="Profile" component={ProfileScreen} />
+    <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
+    <ProfileStack.Screen name="ChangePassword" component={ChangePasswordScreen} />
     <ProfileStack.Screen name="WordDetail" component={WordDetailScreen} />
     <ProfileStack.Screen name="Study" component={StudyScreen} />
   </ProfileStack.Navigator>

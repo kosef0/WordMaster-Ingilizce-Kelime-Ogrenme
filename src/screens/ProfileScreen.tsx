@@ -106,7 +106,10 @@ const ProfileScreen = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Hesap</Text>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('EditProfile')}
+          >
             <View style={styles.menuItemLeft}>
               <Ionicons name="person-outline" size={22} color="#3F51B5" style={styles.menuIcon} />
               <Text style={styles.menuText}>Profil Bilgileri</Text>
@@ -114,7 +117,10 @@ const ProfileScreen = ({ navigation }) => {
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.menuItem}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => navigation.navigate('ChangePassword')}
+          >
             <View style={styles.menuItemLeft}>
               <Ionicons name="lock-closed-outline" size={22} color="#3F51B5" style={styles.menuIcon} />
               <Text style={styles.menuText}>Şifre Değiştir</Text>
