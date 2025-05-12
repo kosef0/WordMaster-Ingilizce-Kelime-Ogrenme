@@ -2,7 +2,7 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import { TouchableOpacity, View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, View, Text, StyleSheet, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 // Import screens
@@ -11,13 +11,14 @@ import RegisterScreen from '../screens/RegisterScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CategoriesScreen from '../screens/CategoriesScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import EditProfileScreen from '../screens/EditProfileScreen';
-import ChangePasswordScreen from '../screens/ChangePasswordScreen';
 import CategoryDetailScreen from '../screens/CategoryDetailScreen';
 import WordDetailScreen from '../screens/WordDetailScreen';
 import SearchScreen from '../screens/SearchScreen';
 import StatsScreen from '../screens/StatsScreen';
 import StudyScreen from '../screens/StudyScreen';
+import LearningScreen from '../screens/LearningScreen';
+import CategoryLessons from '../screens/CategoryLessons';
+import LessonScreen from '../screens/LessonScreen';
 
 // Import auth context
 import { useAuth } from '../context/AuthContext';
@@ -172,6 +173,9 @@ const HomeStackNavigator = () => (
     <HomeStack.Screen name="CategoryDetail" component={CategoryDetailScreen} />
     <HomeStack.Screen name="WordDetail" component={WordDetailScreen} />
     <HomeStack.Screen name="Study" component={StudyScreen} />
+    <HomeStack.Screen name="Learning" component={LearningScreen} />
+    <HomeStack.Screen name="CategoryLessons" component={CategoryLessons} />
+    <HomeStack.Screen name="LessonScreen" component={LessonScreen} />
     <HomeStack.Screen 
       name="Search" 
       component={SearchScreen} 
@@ -191,6 +195,9 @@ const CategoriesStackNavigator = () => (
     <CategoriesStack.Screen name="CategoryDetail" component={CategoryDetailScreen} />
     <CategoriesStack.Screen name="WordDetail" component={WordDetailScreen} />
     <CategoriesStack.Screen name="Study" component={StudyScreen} />
+    <CategoriesStack.Screen name="Learning" component={LearningScreen} />
+    <CategoriesStack.Screen name="CategoryLessons" component={CategoryLessons} />
+    <CategoriesStack.Screen name="LessonScreen" component={LessonScreen} />
     <CategoriesStack.Screen 
       name="Search" 
       component={SearchScreen} 
@@ -207,10 +214,11 @@ const ProfileStack = createStackNavigator();
 const ProfileStackNavigator = () => (
   <ProfileStack.Navigator screenOptions={stackScreenOptions}>
     <ProfileStack.Screen name="Profile" component={ProfileScreen} />
-    <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
-    <ProfileStack.Screen name="ChangePassword" component={ChangePasswordScreen} />
     <ProfileStack.Screen name="WordDetail" component={WordDetailScreen} />
     <ProfileStack.Screen name="Study" component={StudyScreen} />
+    <ProfileStack.Screen name="Learning" component={LearningScreen} />
+    <ProfileStack.Screen name="CategoryLessons" component={CategoryLessons} />
+    <ProfileStack.Screen name="LessonScreen" component={LessonScreen} />
   </ProfileStack.Navigator>
 );
 
@@ -221,6 +229,9 @@ const StatsStackNavigator = () => (
     <StatsStack.Screen name="Stats" component={StatsScreen} />
     <StatsStack.Screen name="WordDetail" component={WordDetailScreen} />
     <StatsStack.Screen name="Study" component={StudyScreen} />
+    <StatsStack.Screen name="Learning" component={LearningScreen} />
+    <StatsStack.Screen name="CategoryLessons" component={CategoryLessons} />
+    <StatsStack.Screen name="LessonScreen" component={LessonScreen} />
   </StatsStack.Navigator>
 );
 
@@ -230,13 +241,8 @@ const RootNavigator = () => {
   const { user, isLoading } = useAuth();
 
   if (isLoading) {
-    // Yükleme ekranı
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#58CC02" />
-        <Text style={{ marginTop: 20, fontSize: 16, color: '#666' }}>Yükleniyor...</Text>
-      </View>
-    );
+    // Burada splash screen gösterilebilir
+    return null;
   }
 
   return (

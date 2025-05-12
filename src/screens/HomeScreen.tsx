@@ -14,11 +14,13 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
 
 const HomeScreen = ({ navigation }) => {
+  const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const [userName, setUserName] = useState(user?.name || 'Kullanıcı');
   const [dailyGoal, setDailyGoal] = useState(5);
@@ -32,9 +34,9 @@ const HomeScreen = ({ navigation }) => {
   ]);
   
   const [courses, setCourses] = useState([
-    { id: '1', title: 'Temel İngilizce', level: 'Başlangıç', progress: 35, color: '#1CB0F6' },
-    { id: '2', title: 'İş İngilizcesi', level: 'Orta', progress: 60, color: '#FF9600' },
-    { id: '3', title: 'Seyahat İngilizcesi', level: 'Başlangıç', progress: 20, color: '#FF4B4B' },
+    { id: '1', title: 'Temel İngilizce', level: 'Başlangıç', progress: 35, color: isDark ? '#2C8AF4' : '#1CB0F6' },
+    { id: '2', title: 'İş İngilizcesi', level: 'Orta', progress: 60, color: isDark ? '#FF9100' : '#FF9600' },
+    { id: '3', title: 'Seyahat İngilizcesi', level: 'Başlangıç', progress: 20, color: isDark ? '#F44336' : '#FF4B4B' },
   ]);
   
   // Animasyon değerleri
@@ -52,12 +54,12 @@ const HomeScreen = ({ navigation }) => {
   });
   
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#58CC02" />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle="light-content" backgroundColor={isDark ? "#121212" : "#58CC02"} />
       
       <Animated.View style={[styles.header, { height: headerHeight }]}>
         <LinearGradient
-          colors={['#58CC02', '#30A501']}
+          colors={isDark ? ['#2E7D32', '#1B5E20'] : ['#58CC02', '#30A501']}
           style={styles.headerGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -110,13 +112,16 @@ const HomeScreen = ({ navigation }) => {
         scrollEventThrottle={16}
       >
         {/* Günlük Hedef */}
-        <View style={styles.dailyGoalCard}>
+        <View style={[styles.dailyGoalCard, { 
+          backgroundColor: colors.card,
+          shadowColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)'
+        }]}>
           <View style={styles.goalHeader}>
-            <Text style={styles.goalTitle}>Günlük Hedef</Text>
-            <Text style={styles.goalProgress}>{completedToday}/{dailyGoal}</Text>
+            <Text style={[styles.goalTitle, { color: colors.text }]}>Günlük Hedef</Text>
+            <Text style={[styles.goalProgress, { color: colors.primary }]}>{completedToday}/{dailyGoal}</Text>
           </View>
           
-          <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBarContainer, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#F0F0F0' }]}>
             <View style={[styles.progressBar, { width: `${(completedToday/dailyGoal) * 100}%` }]} />
           </View>
           
@@ -131,9 +136,9 @@ const HomeScreen = ({ navigation }) => {
         
         {/* Kurslarım */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Kurslarım</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Kurslarım</Text>
           <TouchableOpacity onPress={() => navigation.navigate('CategoriesStack')}>
-            <Text style={styles.seeAllText}>Tümünü Gör</Text>
+            <Text style={[styles.seeAllText, { color: colors.primary }]}>Tümünü Gör</Text>
           </TouchableOpacity>
         </View>
         
@@ -145,11 +150,14 @@ const HomeScreen = ({ navigation }) => {
           {courses.map((course) => (
             <TouchableOpacity 
               key={course.id}
-              style={styles.courseCard}
+              style={[styles.courseCard, { 
+                backgroundColor: colors.card,
+                shadowColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)' 
+              }]}
               onPress={() => navigation.navigate('CategoryDetail', { categoryId: course.id })}
             >
               <LinearGradient
-                colors={[course.color, adjustBrightness(course.color, -30)]}
+                colors={[course.color, adjustBrightness(course.color, isDark ? -15 : -30)]}
                 style={styles.courseGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
@@ -159,11 +167,11 @@ const HomeScreen = ({ navigation }) => {
                   <Text style={styles.courseLevel}>{course.level}</Text>
                   
                   <View style={styles.courseProgressContainer}>
-                    <View style={styles.courseProgressBar}>
+                    <View style={[styles.courseProgressBar, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.3)' }]}>
                       <View 
                         style={[
                           styles.courseProgressFill, 
-                          { width: `${course.progress}%`, backgroundColor: adjustBrightness(course.color, 40) }
+                          { width: `${course.progress}%`, backgroundColor: isDark ? 'white' : adjustBrightness(course.color, 40) }
                         ]} 
                       />
                     </View>
@@ -177,48 +185,50 @@ const HomeScreen = ({ navigation }) => {
         
         {/* Hızlı Pratik */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Hızlı Pratik</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Hızlı Pratik</Text>
         </View>
         
         <View style={styles.quickPracticeContainer}>
           <TouchableOpacity 
-            style={[styles.practiceCard, { backgroundColor: '#FFF4DC' }]}
+            style={[styles.practiceCard, { backgroundColor: isDark ? '#3E2A00' : '#FFF4DC' }]}
             onPress={() => navigation.navigate('StudyScreen')}
           >
-            <View style={[styles.practiceIconContainer, { backgroundColor: '#FFCE26' }]}>
+            <View style={[styles.practiceIconContainer, { backgroundColor: isDark ? '#FFB300' : '#FFCE26' }]}>
               <Ionicons name="help-circle" size={24} color="#FFF" />
             </View>
-            <Text style={styles.practiceTitle}>Kelime Kartları</Text>
-            <Text style={styles.practiceSubtitle}>5 dakika</Text>
+            <Text style={[styles.practiceTitle, { color: colors.text }]}>Kelime Kartları</Text>
+            <Text style={[styles.practiceSubtitle, { color: colors.textSecondary }]}>5 dakika</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={[styles.practiceCard, { backgroundColor: '#E6F8FA' }]}
-            onPress={() => {/* Quiz başlat */}}
+            style={[styles.practiceCard, { backgroundColor: isDark ? '#003D3D' : '#E6FFFA' }]}
+            onPress={() => navigation.navigate('Learning')}
           >
-            <View style={[styles.practiceIconContainer, { backgroundColor: '#1CB0F6' }]}>
-              <Ionicons name="create" size={24} color="#FFF" />
+            <View style={[styles.practiceIconContainer, { backgroundColor: isDark ? '#00B3B3' : '#00CCCC' }]}>
+              <Ionicons name="school" size={24} color="#FFF" />
             </View>
-            <Text style={styles.practiceTitle}>Quiz</Text>
-            <Text style={styles.practiceSubtitle}>10 dakika</Text>
+            <Text style={[styles.practiceTitle, { color: colors.text }]}>Duolingo Tarzı</Text>
+            <Text style={[styles.practiceSubtitle, { color: colors.textSecondary }]}>10 dakika</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
-            style={[styles.practiceCard, { backgroundColor: '#FFF1F0' }]}
-            onPress={() => {/* Kelime Oyunu */}}
+            style={[styles.practiceCard, { backgroundColor: isDark ? '#3D0A3D' : '#FFF0FF' }]}
+            onPress={() => navigation.navigate('WordDetail', { wordId: 'random' })}
           >
-            <View style={[styles.practiceIconContainer, { backgroundColor: '#FF4B4B' }]}>
-              <Ionicons name="game-controller" size={24} color="#FFF" />
+            <View style={[styles.practiceIconContainer, { backgroundColor: isDark ? '#9C27B0' : '#BA68C8' }]}>
+              <Ionicons name="shuffle" size={24} color="#FFF" />
             </View>
-            <Text style={styles.practiceTitle}>Oyun</Text>
-            <Text style={styles.practiceSubtitle}>15 dakika</Text>
+            <Text style={[styles.practiceTitle, { color: colors.text }]}>Rastgele Kelime</Text>
+            <Text style={[styles.practiceSubtitle, { color: colors.textSecondary }]}>2 dakika</Text>
           </TouchableOpacity>
         </View>
         
         {/* Daily Challenge */}
-        <TouchableOpacity style={styles.challengeCard}>
+        <TouchableOpacity style={[styles.challengeCard, { 
+          shadowColor: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.2)'
+        }]}>
           <LinearGradient
-            colors={['#A560FF', '#7839D4']}
+            colors={isDark ? ['#7C4DFF', '#4527A0'] : ['#A560FF', '#7839D4']}
             style={styles.challengeGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
@@ -528,6 +538,14 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     borderRadius: 16,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   challengeGradient: {
     padding: 20,

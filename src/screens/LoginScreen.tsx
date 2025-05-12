@@ -20,6 +20,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from '../context/AuthContext';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { useTheme } from '../context/ThemeContext';
 
 type AuthStackParamList = {
   Login: undefined;
@@ -31,10 +32,13 @@ type LoginScreenNavigationProp = StackNavigationProp<AuthStackParamList, 'Login'
 const { width, height } = Dimensions.get('window');
 
 const LoginScreen = () => {
+  const { colors, isDark } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigation = useNavigation<LoginScreenNavigationProp>();
   
@@ -64,20 +68,60 @@ const LoginScreen = () => {
     ]).start();
   }, []);
   
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      setEmailError('E-posta adresinizi giriniz');
+      return false;
+    } else if (!emailRegex.test(email)) {
+      setEmailError('Geçerli bir e-posta adresi giriniz');
+      return false;
+    } else {
+      setEmailError('');
+      return true;
+    }
+  };
+
+  const validatePassword = (password: string) => {
+    if (!password) {
+      setPasswordError('Şifrenizi giriniz');
+      return false;
+    } else if (password.length < 6) {
+      setPasswordError('Şifre en az 6 karakter olmalıdır');
+      return false;
+    } else {
+      setPasswordError('');
+      return true;
+    }
+  };
+  
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Hata', 'Lütfen e-posta ve şifrenizi girin');
+    // Form doğrulama
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    
+    if (!isEmailValid || !isPasswordValid) {
       return;
     }
     
     try {
-      setIsLoading(true);
+      setLoading(true);
       await login(email, password);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Giriş hatası:', error);
-      Alert.alert('Giriş Başarısız', 'E-posta veya şifre hatalı. Lütfen tekrar deneyin.');
+      let errorMessage = 'Giriş yapılırken bir hata oluştu';
+      
+      if (error.response) {
+        // Sunucudan gelen hata mesajını kullan
+        errorMessage = error.response.data.msg || 'E-posta veya şifre hatalı';
+      } else if (error.request) {
+        // Sunucuya ulaşılamadı
+        errorMessage = 'Sunucuya bağlanılamadı. İnternet bağlantınızı kontrol edin.';
+      }
+      
+      Alert.alert('Giriş Başarısız', errorMessage);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
   
@@ -86,11 +130,11 @@ const LoginScreen = () => {
   };
   
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#58CC02" />
+    <View style={[styles.container, { backgroundColor: isDark ? colors.background : '#fff' }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={isDark ? "#121212" : "#58CC02"} />
       
       <LinearGradient
-        colors={['#58CC02', '#30A501']}
+        colors={isDark ? ['#2E7D32', '#1B5E20'] : ['#58CC02', '#30A501']}
         style={styles.headerGradient}
       />
       
@@ -114,11 +158,13 @@ const LoginScreen = () => {
               }
             ]}
           >
-            <View style={styles.logoCircle}>
-              <Ionicons name="language" size={60} color="#58CC02" />
+            <View style={[styles.logoCircle, { backgroundColor: isDark ? colors.card : 'white' }]}>
+              <Ionicons name="language" size={60} color={colors.primary} />
             </View>
-            <Text style={styles.appName}>WMMobil</Text>
-            <Text style={styles.tagline}>Kelime öğrenmek hiç bu kadar eğlenceli olmamıştı!</Text>
+            <Text style={[styles.appName, { color: isDark ? colors.text : '#333' }]}>WMMobil</Text>
+            <Text style={[styles.tagline, { color: isDark ? colors.textSecondary : '#666' }]}>
+              Kelime öğrenmek hiç bu kadar eğlenceli olmamıştı!
+            </Text>
           </Animated.View>
           
           <Animated.View 
@@ -131,27 +177,36 @@ const LoginScreen = () => {
             ]}
           >
             <View style={styles.inputContainer}>
-              <Ionicons name="mail-outline" size={22} color="#888" style={styles.inputIcon} />
+              <Ionicons name="mail-outline" size={22} color={isDark ? colors.textSecondary : '#888'} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text, borderColor: emailError ? colors.error : 'transparent' }]}
                 placeholder="E-posta adresiniz"
-                placeholderTextColor="#999"
+                placeholderTextColor={isDark ? 'rgba(255,255,255,0.5)' : '#999'}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => {
+                  setEmail(text);
+                  if (emailError) validateEmail(text);
+                }}
+                onBlur={() => validateEmail(email)}
               />
             </View>
+            {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
             
             <View style={styles.inputContainer}>
-              <Ionicons name="lock-closed-outline" size={22} color="#888" style={styles.inputIcon} />
+              <Ionicons name="lock-closed-outline" size={22} color={isDark ? colors.textSecondary : '#888'} style={styles.inputIcon} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: colors.text, borderColor: passwordError ? colors.error : 'transparent' }]}
                 placeholder="Şifreniz"
-                placeholderTextColor="#999"
+                placeholderTextColor={isDark ? 'rgba(255,255,255,0.5)' : '#999'}
                 secureTextEntry={!showPassword}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(text) => {
+                  setPassword(text);
+                  if (passwordError) validatePassword(text);
+                }}
+                onBlur={() => validatePassword(password)}
               />
               <TouchableOpacity 
                 style={styles.showPasswordButton} 
@@ -160,21 +215,22 @@ const LoginScreen = () => {
                 <Ionicons 
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'} 
                   size={22} 
-                  color="#888" 
+                  color={isDark ? colors.textSecondary : '#888'} 
                 />
               </TouchableOpacity>
             </View>
+            {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
             
             <TouchableOpacity style={styles.forgotPasswordLink}>
-              <Text style={styles.forgotPasswordText}>Şifremi unuttum</Text>
+              <Text style={[styles.forgotPasswordText, { color: colors.primary }]}>Şifremi unuttum</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={styles.loginButton} 
+              style={[styles.loginButton, { backgroundColor: colors.primary }]} 
               onPress={handleLogin}
-              disabled={isLoading}
+              disabled={loading}
             >
-              {isLoading ? (
+              {loading ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <>
@@ -185,28 +241,28 @@ const LoginScreen = () => {
             </TouchableOpacity>
             
             <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>veya</Text>
-              <View style={styles.dividerLine} />
+              <View style={[styles.dividerLine, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#e0e0e0' }]} />
+              <Text style={[styles.dividerText, { color: isDark ? colors.textSecondary : '#999' }]}>veya</Text>
+              <View style={[styles.dividerLine, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : '#e0e0e0' }]} />
             </View>
             
             <View style={styles.socialButtons}>
-              <TouchableOpacity style={[styles.socialButton, styles.googleButton]}>
+              <TouchableOpacity style={[styles.socialButton, styles.googleButton, { backgroundColor: isDark ? colors.card : '#fff' }]}>
                 <Ionicons name="logo-google" size={20} color="#DB4437" />
-                <Text style={styles.socialButtonText}>Google</Text>
+                <Text style={[styles.socialButtonText, { color: isDark ? colors.text : '#333' }]}>Google</Text>
               </TouchableOpacity>
               
-              <TouchableOpacity style={[styles.socialButton, styles.appleButton]}>
-                <Ionicons name="logo-apple" size={20} color="#000" />
-                <Text style={styles.socialButtonText}>Apple</Text>
+              <TouchableOpacity style={[styles.socialButton, styles.appleButton, { backgroundColor: isDark ? colors.card : '#fff' }]}>
+                <Ionicons name="logo-apple" size={20} color={isDark ? '#fff' : '#000'} />
+                <Text style={[styles.socialButtonText, { color: isDark ? colors.text : '#333' }]}>Apple</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
           
           <View style={styles.registerContainer}>
-            <Text style={styles.registerText}>Hesabınız yok mu? </Text>
+            <Text style={[styles.registerText, { color: isDark ? colors.textSecondary : '#666' }]}>Hesabınız yok mu? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.registerLink}>Kayıt Ol</Text>
+              <Text style={[styles.registerLink, { color: colors.primary }]}>Kayıt Ol</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -249,67 +305,63 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 8,
-    marginBottom: 16,
+    shadowRadius: 4,
   },
   appName: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.1)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    marginTop: 20,
+    color: '#333',
   },
   tagline: {
     fontSize: 16,
-    color: 'rgba(255, 255, 255, 0.9)',
+    color: '#666',
+    marginTop: 8,
     textAlign: 'center',
-    maxWidth: '80%',
   },
   formContainer: {
-    width: width * 0.9,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
-    marginHorizontal: 20,
+    width: '90%',
+    maxWidth: 400,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f6f6f6',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
     borderRadius: 12,
-    marginBottom: 15,
     paddingHorizontal: 15,
-    height: 56,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   inputIcon: {
-    marginRight: 12,
+    marginRight: 10,
   },
   input: {
     flex: 1,
+    paddingVertical: 15,
     fontSize: 16,
     color: '#333',
-    height: '100%',
   },
   showPasswordButton: {
     padding: 8,
   },
+  errorText: {
+    color: '#FF5E62',
+    marginBottom: 8,
+    marginLeft: 5,
+    fontSize: 12,
+  },
   forgotPasswordLink: {
     alignSelf: 'flex-end',
+    marginTop: 5,
     marginBottom: 20,
   },
   forgotPasswordText: {
-    color: '#1CB0F6',
+    color: '#58CC02',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -317,20 +369,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#58CC02',
     borderRadius: 12,
-    height: 56,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    elevation: 2,
     shadowColor: '#58CC02',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   loginButtonText: {
     color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   buttonIcon: {
     marginLeft: 8,
@@ -338,7 +389,8 @@ const styles = StyleSheet.create({
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginTop: 25,
+    marginBottom: 20,
   },
   dividerLine: {
     flex: 1,
@@ -358,28 +410,34 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 50,
+    width: '48%',
+    paddingVertical: 14,
     borderRadius: 12,
-    flex: 1,
-    marginHorizontal: 6,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   googleButton: {
     backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   appleButton: {
     backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   socialButtonText: {
     marginLeft: 8,
-    fontSize: 15,
     fontWeight: '600',
+    fontSize: 14,
     color: '#333',
   },
   registerContainer: {
     flexDirection: 'row',
-    marginTop: 25,
+    marginTop: 30,
   },
   registerText: {
     fontSize: 15,
@@ -387,7 +445,7 @@ const styles = StyleSheet.create({
   },
   registerLink: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: 'bold',
     color: '#58CC02',
   },
 });

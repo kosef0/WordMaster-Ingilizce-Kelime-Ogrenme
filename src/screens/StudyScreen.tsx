@@ -15,10 +15,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { getRandomWords } from '../services/wordService';
 import { recordWordView, recordWordAnswer, getWordStatus } from '../services/statsService';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 const StudyScreen = ({ navigation }) => {
+  const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [words, setWords] = useState([]);
@@ -109,19 +111,19 @@ const StudyScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#4CAF50" />
-        <Text style={styles.loadingText}>Kelimeler yükleniyor...</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.text }]}>Kelimeler yükleniyor...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <Ionicons name="alert-circle-outline" size={64} color="#FF5E62" />
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadWords}>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Ionicons name="alert-circle-outline" size={64} color={colors.error} />
+        <Text style={[styles.errorText, { color: colors.text }]}>{error}</Text>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.primary }]} onPress={loadWords}>
           <Text style={styles.retryButtonText}>Tekrar Dene</Text>
         </TouchableOpacity>
       </View>
@@ -130,10 +132,10 @@ const StudyScreen = ({ navigation }) => {
 
   if (studyComplete) {
     return (
-      <View style={styles.container}>
-        <StatusBar barStyle="light-content" backgroundColor="#4CAF50" />
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={isDark ? "#2E7D32" : "#4CAF50"} />
         <LinearGradient
-          colors={['#4CAF50', '#8BC34A']}
+          colors={isDark ? ['#2E7D32', '#1B5E20'] : ['#4CAF50', '#8BC34A']}
           style={styles.header}
         >
           <View style={styles.headerContent}>
@@ -149,23 +151,23 @@ const StudyScreen = ({ navigation }) => {
           </View>
         </LinearGradient>
         
-        <View style={styles.completeContainer}>
-          <Ionicons name="checkmark-circle" size={100} color="#4CAF50" />
-          <Text style={styles.completeTitle}>Tebrikler!</Text>
-          <Text style={styles.completeText}>
+        <View style={[styles.completeContainer, { backgroundColor: colors.background }]}>
+          <Ionicons name="checkmark-circle" size={100} color={colors.primary} />
+          <Text style={[styles.completeTitle, { color: colors.text }]}>Tebrikler!</Text>
+          <Text style={[styles.completeText, { color: colors.textSecondary }]}>
             Bu çalışma oturumunu tamamladınız. Kelimeleri düzenli tekrar etmek
             öğrenmenizi hızlandıracaktır.
           </Text>
           
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#4CAF50' }]}
+            style={[styles.actionButton, { backgroundColor: colors.primary }]}
             onPress={handleRestart}
           >
             <Text style={styles.actionButtonText}>Yeniden Başla</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: '#2196F3' }]}
+            style={[styles.actionButton, { backgroundColor: colors.blue }]}
             onPress={() => navigation.navigate('Home')}
           >
             <Text style={styles.actionButtonText}>Ana Sayfaya Dön</Text>
@@ -179,11 +181,11 @@ const StudyScreen = ({ navigation }) => {
   const progress = ((currentWordIndex + 1) / words.length) * 100;
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#4CAF50" />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={isDark ? "#2E7D32" : "#4CAF50"} />
       
       <LinearGradient
-        colors={['#4CAF50', '#8BC34A']}
+        colors={isDark ? ['#2E7D32', '#1B5E20'] : ['#4CAF50', '#8BC34A']}
         style={styles.header}
       >
         <View style={styles.headerContent}>
@@ -200,55 +202,58 @@ const StudyScreen = ({ navigation }) => {
         </View>
       </LinearGradient>
       
-      <View style={styles.progressContainer}>
-        <View style={styles.progressBar}>
+      <View style={[styles.progressContainer, { backgroundColor: colors.card }]}>
+        <View style={[styles.progressBar, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#E0E0E0' }]}>
           <View 
             style={[
               styles.progressFill, 
-              { width: `${progress}%` }
+              { width: `${progress}%`, backgroundColor: colors.primary }
             ]} 
           />
         </View>
-        <Text style={styles.progressText}>
+        <Text style={[styles.progressText, { color: colors.textSecondary }]}>
           {currentWordIndex + 1} / {words.length}
         </Text>
       </View>
       
       <ScrollView 
         style={styles.content}
-        contentContainerStyle={styles.contentContainer}
+        contentContainerStyle={[styles.contentContainer, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
       >
         {currentWord && (
-          <View style={styles.wordCard}>
+          <View style={[styles.wordCard, { 
+            backgroundColor: colors.card,
+            shadowColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)' 
+          }]}>
             <View style={styles.statusIndicator}>
               {wordStatuses[currentWord.id] === 'new' && (
-                <View style={[styles.statusDot, { backgroundColor: '#ccc' }]} />
+                <View style={[styles.statusDot, { backgroundColor: isDark ? '#666' : '#ccc' }]} />
               )}
               {wordStatuses[currentWord.id] === 'learning' && (
-                <View style={[styles.statusDot, { backgroundColor: '#FFA500' }]} />
+                <View style={[styles.statusDot, { backgroundColor: colors.orange }]} />
               )}
               {wordStatuses[currentWord.id] === 'mastered' && (
-                <View style={[styles.statusDot, { backgroundColor: '#4CAF50' }]} />
+                <View style={[styles.statusDot, { backgroundColor: colors.primary }]} />
               )}
             </View>
             
-            <Text style={styles.term}>{currentWord.term}</Text>
+            <Text style={[styles.term, { color: colors.text }]}>{currentWord.term}</Text>
             
             {!showDefinition ? (
               <TouchableOpacity 
-                style={styles.revealButton}
+                style={[styles.revealButton, { backgroundColor: colors.primary }]}
                 onPress={handleShowDefinition}
               >
                 <Text style={styles.revealButtonText}>Anlamı Göster</Text>
               </TouchableOpacity>
             ) : (
               <View style={styles.definitionContainer}>
-                <Text style={styles.definition}>{currentWord.definition}</Text>
+                <Text style={[styles.definition, { color: colors.text }]}>{currentWord.definition}</Text>
                 
                 <View style={styles.responseButtons}>
                   <TouchableOpacity 
-                    style={[styles.responseButton, styles.incorrectButton]}
+                    style={[styles.responseButton, styles.incorrectButton, { backgroundColor: colors.red }]}
                     onPress={() => handleAnswer(false)}
                   >
                     <Ionicons name="close-circle" size={20} color="#fff" />
@@ -256,7 +261,7 @@ const StudyScreen = ({ navigation }) => {
                   </TouchableOpacity>
                   
                   <TouchableOpacity 
-                    style={[styles.responseButton, styles.correctButton]}
+                    style={[styles.responseButton, styles.correctButton, { backgroundColor: colors.primary }]}
                     onPress={() => handleAnswer(true)}
                   >
                     <Ionicons name="checkmark-circle" size={20} color="#fff" />
@@ -267,11 +272,11 @@ const StudyScreen = ({ navigation }) => {
             )}
             
             <TouchableOpacity 
-              style={styles.detailButton}
+              style={[styles.detailButton, { borderColor: isDark ? 'rgba(255,255,255,0.1)' : '#e0e0e0' }]}
               onPress={handleWordDetail}
             >
-              <Text style={styles.detailButtonText}>Detaylar</Text>
-              <Ionicons name="information-circle-outline" size={20} color="#2196F3" />
+              <Text style={[styles.detailButtonText, { color: colors.blue }]}>Detaylar</Text>
+              <Ionicons name="information-circle-outline" size={20} color={colors.blue} />
             </TouchableOpacity>
           </View>
         )}
@@ -379,11 +384,11 @@ const styles = StyleSheet.create({
   },
   revealButton: {
     backgroundColor: '#4CAF50',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',
-    marginTop: 20,
+    justifyContent: 'center',
+    marginTop: 10,
   },
   revealButtonText: {
     color: '#fff',
@@ -394,27 +399,27 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   definition: {
-    fontSize: 18,
-    color: '#555',
+    fontSize: 20,
     textAlign: 'center',
-    lineHeight: 26,
+    marginBottom: 30,
+    color: '#333',
+    lineHeight: 28,
   },
   responseButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 25,
+    marginTop: 10,
   },
   responseButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 20,
     borderRadius: 8,
     width: '48%',
   },
   incorrectButton: {
-    backgroundColor: '#FF5252',
+    backgroundColor: '#F44336',
   },
   correctButton: {
     backgroundColor: '#4CAF50',
@@ -423,18 +428,20 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    marginLeft: 8,
+    marginLeft: 5,
   },
   detailButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
-    padding: 10,
+    marginTop: 30,
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
   },
   detailButtonText: {
     color: '#2196F3',
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 5,
   },
   loadingText: {
@@ -454,24 +461,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 8,
+    elevation: 2,
   },
   retryButtonText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
   },
   completeContainer: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
+    alignItems: 'center',
+    padding: 30,
   },
   completeTitle: {
-    fontSize: 30,
+    fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
     marginTop: 20,
-    marginBottom: 10,
+    marginBottom: 15,
   },
   completeText: {
     fontSize: 16,

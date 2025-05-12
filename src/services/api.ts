@@ -1,12 +1,20 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Mobile devices can't connect to "localhost" - it refers to the device itself
-// For Android emulator, use 10.0.2.2 instead of localhost
-// For physical devices, use your computer's actual IP address
-const API_URL = 'http://10.0.2.2:5000'; // For Android emulator
+// Cihaz tipi ve ortam bazlı API URL'yi dinamik olarak belirleme
+let API_URL = '';
 
-// If using a physical device, uncomment and use your computer's IP:
-// const API_URL = 'http://192.168.1.108:5000'; // Replace with your actual IP
+// Expo kullanırken gerçek cihazın IP adresini otomatik algıla
+if (process.env.EXPO_PUBLIC_IP) {
+  // Expo ortam değişkeninden IP adresini al
+  API_URL = `http://${process.env.EXPO_PUBLIC_IP}:5000`;
+} else {
+  // Bilgisayarın gerçek IP adresi
+  API_URL = 'http://192.168.36.65:5000';
+}
+
+console.log('API bağlantı adresi:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -16,9 +24,17 @@ const api = axios.create({
   timeout: 10000
 });
 
-// Add request interceptor for debugging
+// Her istekte token ekleyen interceptor
 api.interceptors.request.use(
-  config => {
+  async config => {
+    try {
+      const token = await AsyncStorage.getItem('auth_token');
+      if (token) {
+        config.headers['x-auth-token'] = token;
+      }
+    } catch (error) {
+      console.log('Token alma hatası:', error);
+    }
     console.log('API Request:', config.method.toUpperCase(), config.url);
     return config;
   },

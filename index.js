@@ -1,5 +1,5 @@
-// sadece bir polyfill dosyasını import edelim
-import './global.js';
+// İlk olarak polyfill'i import edelim
+import './setImmediatePolyfill.js';
 
 // Expo'nun giriş noktasını import edelim
 import { registerRootComponent } from 'expo';

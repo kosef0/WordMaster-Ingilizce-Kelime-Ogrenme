@@ -11,15 +11,20 @@ import {
   StatusBar,
   Animated,
   Platform,
+  TextInput,
 } from 'react-native';
 import { getCategories } from '../services/categoryService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 const CategoriesScreen = ({ navigation }) => {
+  const { colors, isDark } = useTheme();
   const [categories, setCategories] = useState([]);
+  const [filteredCategories, setFilteredCategories] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -50,34 +55,54 @@ const CategoriesScreen = ({ navigation }) => {
   });
 
   useEffect(() => {
-    fetchCategories();
+    loadCategories();
   }, []);
 
-  const fetchCategories = async () => {
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredCategories(categories);
+    } else {
+      const filtered = categories.filter(category => 
+        category.name.toLowerCase().includes(searchQuery.toLowerCase()));
+      setFilteredCategories(filtered);
+    }
+  }, [searchQuery, categories]);
+
+  const loadCategories = async () => {
     try {
       setLoading(true);
-      const data = await getCategories();
-      console.log('Çekilen kategoriler:', data);
-      setCategories(data);
+      const categoriesData = await getCategories();
+      setCategories(categoriesData);
+      setFilteredCategories(categoriesData);
       setError(null);
     } catch (err) {
-      console.error('Kategori çekme hatası:', err);
-      setError('Kategorileri yüklerken bir hata oluştu');
+      console.error('Kategoriler yüklenirken hata:', err);
+      setError('Kategoriler yüklenirken bir hata oluştu');
     } finally {
       setLoading(false);
     }
   };
 
-  // Kategori kartları için renkler - tipini readonly tuples olarak değiştirelim
-  const gradientColors: readonly [string, string][] = [
-    ['#58CC02', '#2B8700'], // Duolingo Yeşil
-    ['#1CB0F6', '#0076BA'], // Duolingo Mavi
-    ['#FF9600', '#E05D00'], // Turuncu
-    ['#FF4B4B', '#C00000'], // Kırmızı
-    ['#A560FF', '#7839D4'], // Mor
-    ['#F2B134', '#E0A400'], // Sarı
-    ['#00CD9C', '#00A47D'], // Turkuaz
-  ];
+  const getRandomGradient = (index) => {
+    const gradients = isDark ? [
+      ['#2196F3', '#0D47A1'], // Mavi
+      ['#4CAF50', '#1B5E20'], // Yeşil
+      ['#FF5722', '#C41C00'], // Turuncu-kırmızı
+      ['#9C27B0', '#4A148C'], // Mor
+      ['#FF9800', '#E65100'], // Turuncu
+      ['#009688', '#004D40'], // Teal
+      ['#3F51B5', '#1A237E'], // Indigo
+    ] as readonly [string, string][] : [
+      ['#2196F3', '#42A5F5'], // Mavi
+      ['#4CAF50', '#66BB6A'], // Yeşil
+      ['#FF5722', '#FF8A65'], // Turuncu-kırmızı
+      ['#9C27B0', '#BA68C8'], // Mor
+      ['#FF9800', '#FFA726'], // Turuncu
+      ['#009688', '#26A69A'], // Teal
+      ['#3F51B5', '#5C6BC0'], // Indigo
+    ] as readonly [string, string][];
+    return gradients[index % gradients.length];
+  };
 
   const getCategoryIcon = (name) => {
     // Kategori ismine göre icon seç
@@ -105,19 +130,25 @@ const CategoriesScreen = ({ navigation }) => {
   };
 
   const renderItem = ({ item, index }) => {
-    const colorIndex = index % gradientColors.length;
+    const gradient = getRandomGradient(index);
     const icon = getCategoryIcon(item.name);
     const completionPercent = Math.floor(Math.random() * 100); // Demo amaçlı rastgele tamamlanma yüzdesi
     
     return (
       <TouchableOpacity 
-        style={styles.categoryCard}
+        style={[
+          styles.categoryCard,
+          { 
+            backgroundColor: colors.card,
+            shadowColor: isDark ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.2)'
+          }
+        ]}
         onPress={() => navigation.navigate('CategoryDetail', { categoryId: item._id })}
         activeOpacity={0.8}
       >
         <LinearGradient
-          colors={gradientColors[colorIndex]}
-          style={styles.gradient}
+          colors={gradient}
+          style={styles.cardGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
         >
@@ -164,19 +195,22 @@ const CategoriesScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#58CC02" />
-        <Text style={styles.loadingText}>Kategoriler yükleniyor...</Text>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.text }]}>Kategoriler yükleniyor...</Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.centered}>
-        <Ionicons name="cloud-offline" size={64} color="#FF4B4B" />
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={fetchCategories}>
+      <View style={[styles.centered, { backgroundColor: colors.background }]}>
+        <Ionicons name="alert-circle-outline" size={64} color={colors.error} />
+        <Text style={[styles.errorText, { color: colors.text }]}>{error}</Text>
+        <TouchableOpacity 
+          style={[styles.retryButton, { backgroundColor: colors.primary }]} 
+          onPress={loadCategories}
+        >
           <Text style={styles.retryButtonText}>Tekrar Dene</Text>
         </TouchableOpacity>
       </View>
@@ -184,12 +218,12 @@ const CategoriesScreen = ({ navigation }) => {
   }
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#58CC02" />
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={isDark ? "#121212" : "#3F51B5"} />
       
       <Animated.View style={[styles.header, { height: headerHeight }]}>
         <LinearGradient
-          colors={['#58CC02', '#30A501']}
+          colors={isDark ? ['#303F9F', '#1A237E'] : ['#3F51B5', '#5C6BC0']}
           style={styles.headerGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
@@ -206,7 +240,7 @@ const CategoriesScreen = ({ navigation }) => {
               }
             ]}
           >
-            <Text style={styles.headerTitle}>Kategoriler</Text>
+            <Text style={styles.headerTitle}>Kelime Kategorileri</Text>
             <Text style={styles.headerSubtitle}>İngilizce kelime kategorilerini keşfedin</Text>
           </Animated.View>
           
@@ -223,14 +257,37 @@ const CategoriesScreen = ({ navigation }) => {
         </LinearGradient>
       </Animated.View>
       
-      {categories.length === 0 ? (
-        <View style={styles.centered}>
-          <Ionicons name="folder-open-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyText}>Henüz kategori bulunmamaktadır</Text>
+      <View style={[styles.searchContainer, { 
+        backgroundColor: colors.card,
+        shadowColor: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.1)'
+      }]}>
+        <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+        <TextInput
+          style={[styles.searchInput, { color: colors.text }]}
+          placeholder="Kategori ara..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor={colors.textSecondary}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
+      
+      {filteredCategories.length === 0 ? (
+        <View style={[styles.emptyContainer, { backgroundColor: colors.background }]}>
+          <Ionicons name="folder-open-outline" size={64} color={colors.textSecondary} />
+          <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+            {searchQuery.length > 0 
+              ? 'Aramanızla eşleşen kategori bulunamadı' 
+              : 'Henüz kategori bulunmamaktadır'}
+          </Text>
         </View>
       ) : (
         <Animated.FlatList
-          data={categories}
+          data={filteredCategories}
           renderItem={renderItem}
           keyExtractor={item => item._id || Math.random().toString()}
           contentContainerStyle={styles.listContainer}
@@ -250,7 +307,7 @@ const CategoriesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f6f6f6',
+    backgroundColor: '#f5f5f5',
   },
   header: {
     position: 'absolute',
@@ -319,7 +376,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
   },
-  gradient: {
+  cardGradient: {
     flex: 1,
     padding: 16,
   },
@@ -408,6 +465,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
   },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   emptyText: {
     fontSize: 16,
     color: '#999',
@@ -429,6 +492,29 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    margin: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  searchIcon: {
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+    paddingVertical: 5,
   },
 });
 

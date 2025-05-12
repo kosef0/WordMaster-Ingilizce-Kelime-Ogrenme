@@ -3,10 +3,6 @@ const cors = require('cors');
 const connectDB = require('./db');
 require('dotenv').config(); // Make sure this is added
 
-// JWT Secret key tanımlanması - .env içinde olmasa bile
-const JWT_SECRET = process.env.JWT_SECRET || 'wmm0b1l$3cur3t0k3n2023';
-global.JWT_SECRET = JWT_SECRET;
-
 // MongoDB Atlas bağlantısı
 connectDB();
 
@@ -31,6 +27,7 @@ app.get('/', (req, res) => {
 app.use('/api/users', require('./routes/users'));
 app.use('/api/categories', require('./routes/categories'));
 app.use('/api/words', require('./routes/words'));
+app.use('/api/learning', require('./routes/learning'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
